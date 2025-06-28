@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>মানুষ থেকে পশু: আপনার লুক-এলাইক খুঁজুন</title>
+    <!-- Google Fonts থেকে বাংলা ফন্ট লিঙ্ক করা হয়েছে -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* === CSS কোড শুরু === */
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            margin-bottom: 30px;
+        }
+
+        .upload-btn {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .upload-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .result-area {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .image-box {
+            width: 300px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 10px;
+            padding: 15px;
+            background-color: #fafafa;
+        }
+
+        .image-box h2 {
+            font-size: 18px;
+            color: #34495e;
+            margin-top: 0;
+        }
+
+        .image-box img {
+            max-width: 100%;
+            height: 250px;
+            border-radius: 5px;
+            object-fit: cover;
+            background-color: #ecf0f1;
+        }
+
+        /* লোডিং অ্যানিমেশন */
+        #loading {
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #3498db;
+            animation: spin 1s ease infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+        /* === CSS কোড শেষ === */
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>আপনার পশুর মতো দেখতে সঙ্গী খুঁজুন!</h1>
+        <p>আপনার একটি ছবি আপলোড করুন এবং দেখুন কোন পশুর সাথে আপনার চেহারার মিল আছে।</p>
+
+        <div class="upload-area">
+            <!-- এই ইনপুট ফিল্ডটি লুকানো থাকবে -->
+            <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+            <!-- ব্যবহারকারী এই বোতামে ক্লিক করবে -->
+            <label for="imageUpload" class="upload-btn">ছবি আপলোড করুন</label>
+        </div>
+
+        <!-- ফলাফল দেখানোর জায়গা -->
+        <div class="result-area">
+            <div class="image-box">
+                <h2>আপনার ছবি</h2>
+                <img id="humanImage" src="https://via.placeholder.com/300x250/ecf0f1/bdc3c7?text=আপনার+ছবি" alt="আপনার ছবি এখানে আসবে">
+            </div>
+            <div class="image-box">
+                <h2>আপনার পশু সঙ্গী</h2>
+                <img id="animalImage" src="https://via.placeholder.com/300x250/ecf0f1/bdc3c7?text=পশুর+ছবি" alt="পশুর ছবি এখানে আসবে">
+            </div>
+        </div>
+
+        <!-- লোডিং অ্যানিমেশন -->
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p>বিশ্লেষণ করা হচ্ছে...</p>
+        </div>
+        
+    </div>
+
+    <script>
+        // === JavaScript কোড শুরু ===
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const imageUpload = document.getElementById('imageUpload');
+            const humanImage = document.getElementById('humanImage');
+            const animalImage = document.getElementById('animalImage');
+            const loadingDiv = document.getElementById('loading');
+
+            // ব্যবহারকারী যখন ছবি আপলোড করবে
+            imageUpload.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    // ব্যবহারকারীর আপলোড করা ছবি দেখানো
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        humanImage.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+
+                    // AI প্রসেসিং সিমুলেট করা
+                    findAnimalLookalike();
+                }
+            });
+
+            function findAnimalLookalike() {
+                // লোডিং অ্যানিমেশন দেখানো
+                loadingDiv.classList.remove('hidden');
+                // আগের ফলাফল রিসেট করা
+                animalImage.src = 'https://via.placeholder.com/300x250/ecf0f1/bdc3c7?text=অনুসন্ধান...';
+
+                // আসল AI এর পরিবর্তে, আমরা একটি ডেমো ফাংশন ব্যবহার করছি।
+                // এটি ৩ সেকেন্ড পরে একটি র‍্যান্ডম পশুর ছবি দেখাবে।
+                setTimeout(() => {
+                    // কিছু ডেমো পশুর ছবির লিঙ্ক (আপনি আপনার নিজের ছবির লিঙ্ক ব্যবহার করতে পারেন)
+                    const animals = [
+                        'https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1', // বিড়াল
+                        'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1', // কুকুর
+                        'https://images.pexels.com/photos/1059823/pexels-photo-1059823.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1', // পেঁচা
+                        'https://images.pexels.com/photos/247502/pexels-photo-247502.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1', // সিংহ
+                        'https://images.pexels.com/photos/40984/alpaca-llama-animal-cute-40984.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1', // আলপাকা
+                        'https://images.pexels.com/photos/39571/gorilla-silverback-animal-silvery-grey-39571.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' // গরিলা
+                    ];
+                    
+                    // তালিকা থেকে একটি র‍্যান্ডম ছবি নির্বাচন
+                    const randomAnimalUrl = animals[Math.floor(Math.random() * animals.length)];
+                    
+                    // ফলাফল দেখানো
+                    animalImage.src = randomAnimalUrl;
+
+                    // লোডিং অ্যানিমেশন লুকানো
+                    loadingDiv.classList.add('hidden');
+                    
+                }, 3000); // ৩ সেকেন্ডের ডেমো অপেক্ষা
+            }
+        });
+        // === JavaScript কোড শেষ ===
+    </script>
+
+    <!-- === নতুন যোগ করা বিজ্ঞাপন স্ক্রিপ্ট শুরু === -->
+    <script type='text/javascript' src='//pl27024412.profitableratecpm.com/82/6f/36/826f36b4fa82b3be83ec0b2f40f18944.js'></script>
+
+    <script type="text/javascript">
+        atOptions = {
+            'key' : '30d6f2461d2dd81a6b22b14dca2ef120',
+            'format' : 'iframe',
+            'height' : 60,
+            'width' : 468,
+            'params' : {}
+        };
+    </script>
+    <script type="text/javascript" src="//www.highperformanceformat.com/30d6f2461d2dd81a6b22b14dca2ef120/invoke.js"></script>
+
+    <script type='text/javascript' src='//pl27024443.profitableratecpm.com/ab/c9/4e/abc94e16a010596e4e47330ef6c2ae16.js'></script>
+    <!-- === নতুন যোগ করা বিজ্ঞাপন স্ক্রিপ্ট শেষ === -->
+
+</body>
+</html>
